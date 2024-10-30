@@ -18,14 +18,14 @@ Git Secrets Replacer is a tool to help you remove sensitive information (secrets
 
 ### Precompiled Binaries
 
-Download the precompiled binaries for your operating system from the [Releases](https://github.com/TylerStrel/git-secrets-replacer/releases) page.
+Download the precompiled binaries for your operating system from the [Releases](https://github.com/DeviousLabs/git-secrets-replacer/releases) page.
 
 ### From Source
 
 To build from source, you need to have Go installed. Clone the repository and build the binary:
 
 ```bash
-git clone https://github.com/TylerStrel/git-secrets-replacer.git
+git clone https://github.com/DeviousLabs/git-secrets-replacer.git
 cd git-secrets-replacer
 go build -o git-secrets-replacer main.go
 ```
@@ -82,7 +82,7 @@ To run the project from the source, you need to have Go installed on your machin
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/TylerStrel/git-secrets-replacer.git
+   git clone https://github.com/DeviousLabs/git-secrets-replacer.git
    cd git-secrets-replacer
    ```
  2. Run the project:
@@ -141,6 +141,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 If you have any questions or suggestions, please feel free to reach out.
 
-You can also open an issue on this repository: [GitHub Issues](https://github.com/TylerStrel/git-secrets-replacer/issues)
+You can also open an issue on this repository: [GitHub Issues](https://github.com/DeviousLabs/git-secrets-replacer/issues)
 
 
