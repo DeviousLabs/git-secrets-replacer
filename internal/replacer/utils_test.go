@@ -2,8 +2,33 @@ package replacer
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
+
+func FuzzReadSecrets(f *testing.F) {
+	f.Add("secret1\nsecret2\nsecret3\n")
+	f.Add("password123\npassword456\npassword789\n")
+	f.Add("\n\n\temptyline\n\t\n")
+
+	f.Fuzz(func(t *testing.T, input string) {
+		filePath := "temp_fuzz_secrets.txt"
+		err := os.WriteFile(filePath, []byte(input), 0644)
+		if err != nil {
+			t.Fatalf("failed to create temp file: %v", err)
+		}
+		defer os.Remove(filePath)
+
+		secrets, err := ReadSecrets(filePath)
+		if err != nil && !strings.Contains(err.Error(), "unexpected EOF") {
+			t.Errorf("ReadSecrets failed with error: %v", err)
+		}
+
+		if len(secrets) > 0 && secrets[0] == "" {
+			t.Errorf("unexpected empty secret in the result: %v", secrets)
+		}
+	})
+}
 
 func TestReadSecrets(t *testing.T) {
 	tmpfile, err := os.CreateTemp("", "secrets")
