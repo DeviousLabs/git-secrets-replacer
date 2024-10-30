@@ -126,7 +126,6 @@ func ProcessBlob(sha, path string, secrets []string) (string, error) {
 							mu.Lock()
 							content = regex.ReplaceAllString(content, "**REMOVED**")
 							changed = true
-							fmt.Println("Found and replaced sensitive string in file:", path)
 							mu.Unlock()
 						}
 					}
@@ -199,7 +198,6 @@ func ProcessLargeBlob(sha, path string, secrets []string) (string, error) {
 			if regex.MatchString(content) {
 				content = regex.ReplaceAllString(content, "**REMOVED**")
 				changed = true
-				fmt.Printf("Pass %d: Found and replaced sensitive string in file: %s\n", pass, path)
 			}
 		}
 	}
@@ -276,7 +274,6 @@ func ProcessCommit(commit string, secrets []string) (string, error) {
 
 	newCommitHashStr := strings.TrimSpace(string(newCommitHash))
 	CommitMap[commit] = newCommitHashStr
-	fmt.Printf("Replaced old commit %s with new commit %s\n", commit, newCommitHashStr)
 
 	return newCommitHashStr, nil
 }
