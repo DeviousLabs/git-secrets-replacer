@@ -1,7 +1,7 @@
 # Git Secrets Replacer
-[![Go Report Card](https://goreportcard.com/badge/github.com/TylerStrel/git-secrets-replacer)](https://goreportcard.com/report/github.com/TylerStrel/git-secrets-replacer)
+[![Go Report Card](https://goreportcard.com/badge/github.com/DeviousLabs/git-secrets-replacer)](https://goreportcard.com/report/github.com/DeviousLabs/git-secrets-replacer)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9513/badge)](https://www.bestpractices.dev/projects/9513)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/TylerStrel/git-secrets-replacer/badge)](https://scorecard.dev/viewer/?uri=github.com/TylerStrel/git-secrets-replacer/security)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/DeviousLabs/git-secrets-replacer/badge)](https://scorecard.dev/viewer/?uri=github.com/DeviousLabs/git-secrets-replacer/security)
 
 ## Overview
 
