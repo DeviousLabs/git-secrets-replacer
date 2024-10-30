@@ -25,25 +25,65 @@ func TestHelperProcess(t *testing.T) {
 	if len(args) < 4 {
 		os.Exit(2)
 	}
-	switch args[3] {
+
+	command := args[3]
+	subcommand := ""
+	if len(args) > 4 {
+		subcommand = args[4]
+	}
+
+	switch command {
 	case "git":
-		if len(args) > 4 && args[4] == "log" {
-			os.Stdout.Write([]byte("tree abcdef123456\n"))
-		} else if len(args) > 6 && args[4] == "cat-file" && args[5] == "-s" && args[6] == "abcdef" {
-			os.Stdout.Write([]byte("12345\n"))
-		} else if len(args) > 4 && args[4] == "hash-object" {
-			os.Stdout.Write([]byte("newhash123\n"))
-		} else if len(args) > 5 && args[4] == "cat-file" && args[5] == "-p" && args[6] == "abcdef" {
-			os.Stdout.Write([]byte("secret data\n"))
-		} else if len(args) > 5 && args[4] == "cat-file" && args[5] == "-p" {
-			os.Stdout.Write([]byte("mocked output\n"))
-		} else {
-			os.Stdout.Write([]byte("mocked output\n"))
-		}
-		os.Exit(0)
+		handleGitCommand(subcommand, args)
 	default:
 		os.Stderr.WriteString("mocked command not recognized\n")
 		os.Exit(128)
+	}
+}
+
+func handleGitCommand(subcommand string, args []string) {
+	switch subcommand {
+	case "log":
+		os.Stdout.Write([]byte("tree abcdef123456\n"))
+	case "cat-file":
+		handleCatFileCommand(args)
+	case "hash-object":
+		os.Stdout.Write([]byte("newhash123\n"))
+	default:
+		os.Stdout.Write([]byte("mocked output\n"))
+	}
+	os.Exit(0)
+}
+
+func handleCatFileCommand(args []string) {
+	if len(args) > 5 {
+		switch args[5] {
+		case "-s":
+			os.Stdout.Write([]byte("12345\n"))
+		case "-p":
+			handleCatFilePCommand(args)
+		default:
+			os.Stdout.Write([]byte("mocked output\n"))
+		}
+	} else {
+		os.Stdout.Write([]byte("mocked output\n"))
+	}
+}
+
+func handleCatFilePCommand(args []string) {
+	if len(args) > 6 {
+		switch args[6] {
+		case "abcdef":
+			os.Stdout.Write([]byte("secret data\n"))
+		case "abcdef123456":
+			os.Stdout.Write([]byte("tree treehash123\nparent parenthash123\n"))
+		case "treehash123":
+			os.Stdout.Write([]byte("100644 blob abcdef123456\tfile.txt\n"))
+		default:
+			os.Stdout.Write([]byte("mocked output\n"))
+		}
+	} else {
+		os.Stdout.Write([]byte("mocked output\n"))
 	}
 }
 

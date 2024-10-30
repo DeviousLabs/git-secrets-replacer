@@ -1,0 +1,31 @@
+name: Go Fuzzing
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  fuzzing:
+    name: Go Fuzzing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
+
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+        with:
+          go-version: 1.22.6
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+
+      - name: Run fuzz tests
+        run: |
+          go test -fuzz=FuzzReadSecrets -fuzztime=60s ./internal/replacer
