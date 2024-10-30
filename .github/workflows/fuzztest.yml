@@ -1,4 +1,4 @@
-name: Fuzzing
+name: ClusterFuzzLite Fuzzing
 
 on:
   push:
@@ -14,24 +14,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
           go-version: 1.22.6
 
       - name: Install ClusterFuzzLite dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang llvm libclang-dev
+          sudo apt-get install -y clang llvm libclang-dev libunwind-dev make cmake python3-pip
+          pip3 install --upgrade pip
+          pip3 install atheris
+
+      - name: Set environment variables
+        run: |
+          export FUZZING_ENGINE=libfuzzer
+          export SANITIZER=address
+          export RUN_FUZZERS=1
 
       - name: Build fuzz targets
         run: |
-          go test -fuzz=. -c -o fuzz_targets  # Automatically build all fuzzing tests
+          go test -fuzz=. -c -o fuzz_targets
 
       - name: Run fuzz tests
         run: |
-          python3 infra/helper.py build_fuzzers .
-          python3 infra/helper.py run_fuzzer ./ fuzz_targets
+          ./fuzz_targets
