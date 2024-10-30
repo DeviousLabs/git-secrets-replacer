@@ -1,0 +1,37 @@
+name: Fuzzing
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  fuzzing:
+    name: Fuzzing with ClusterFuzzLite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.6
+
+      - name: Install ClusterFuzzLite dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm libclang-dev
+
+      - name: Build fuzz targets
+        run: |
+          go test -fuzz=. -c -o fuzz_targets  # Automatically build all fuzzing tests
+
+      - name: Run fuzz tests
+        run: |
+          python3 infra/helper.py build_fuzzers .
+          python3 infra/helper.py run_fuzzer ./ fuzz_targets
