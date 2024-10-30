@@ -6,7 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/TylerStrel/git-secrets-replacer/internal/replacer"
+	"github.com/DeviousLabs/git-secrets-replacer/internal/replacer"
+	"github.com/schollz/progressbar/v3"
 )
 
 var (
@@ -18,6 +19,11 @@ var (
 
 func getBanner() string {
 	return `
+ ____             _                 _          _         
+|  _ \  _____   _(_) ___  _   _ ___| |    __ _| |__  ___ 
+| | | |/ _ \ \ / / |/ _ \| | | / __| |   / _' | '_ \/ __|
+| |_| |  __/\ V /| | (_) | |_| \__ \ |__| (_| | |_) \__ \
+|____/ \___| \_/ |_|\___/ \__,_|___/_____\__,_|_.__/|___/
   ____ _ _   ____                     _       ____            _                
  / ___(_) |_/ ___|  ___  ___ _ __ ___| |_ ___|  _ \ ___ _ __ | | __ _  ___ ___  _ __ 
 | |  _| | __\___ \ / _ \/ __| '__/ _ \ __/ __| |_) / _ \ '_ \| |/ _' |/ __/ _ \| '__|
@@ -34,7 +40,7 @@ func displayUsageInstructions() {
 3. Choose whether the changes should be force pushed to the remote/origin (true/false).
 
 For any issues, feature requests, or more information, visit:
-https://github.com/TylerStrel/git-secrets-replacer`)
+https://github.com/DeviousLabs/git-secrets-replacer`)
 }
 func readSecretsFile(filePath string) ([]string, error) {
 	file, err := os.Open(filePath)
@@ -119,11 +125,11 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error getting commits for ref %s: %v\n", ref, err)
 			os.Exit(1)
 		}
-
+		totalCommits := len(commits)
+		bar := progressbar.NewOptions(totalCommits, progressbar.OptionSetPredictTime(false), progressbar.OptionShowCount())
 		var newHead string
 		for i := len(commits) - 1; i >= 0; i-- {
 			commit := commits[i]
-			fmt.Println("Processing commit:", commit)
 			newCommit, err := replacer.ProcessCommit(commit, secrets)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error processing commit %s: %v\n", commit, err)
@@ -131,9 +137,9 @@ func main() {
 			}
 			replacer.CommitMap[commit] = newCommit
 			newHead = newCommit
+			bar.Add(1)
 		}
 
-		fmt.Println("Updating ref:", ref, "to new commit hash:", newHead)
 		if err := replacer.UpdateRef(ref, newHead); err != nil {
 			fmt.Fprintf(os.Stderr, "Error updating ref %s: %v\n", ref, err)
 			os.Exit(1)
@@ -150,5 +156,5 @@ func main() {
 	fmt.Println("Repository has been rewritten successfully.")
 
 	fmt.Println("\nFor any issues, feature requests, or more information, visit:")
-	fmt.Println("https://github.com/TylerStrel/git-secrets-replacer")
+	fmt.Println("https://github.com/DeviousLabs/git-secrets-replacer")
 }
