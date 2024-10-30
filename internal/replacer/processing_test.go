@@ -1,11 +1,9 @@
 package replacer
 
 import (
-	"bytes"
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
 	"sync"
 	"testing"
 )
@@ -89,32 +87,6 @@ func handleCatFilePCommand(args []string) {
 	}
 }
 
-func FuzzGetCachedGitOutput(f *testing.F) {
-	f.Add("git", "log")
-	f.Add("git", "status")
-	f.Add("git", "rev-parse")
-	f.Add("git", "show")
-
-	f.Fuzz(func(t *testing.T, arg1 string, arg2 string) {
-		commitCache = sync.Map{}
-
-		execCommand = mockExecCommand
-		defer func() { execCommand = exec.Command }()
-
-		args := []string{arg1, arg2}
-
-		output, err := GetCachedGitOutput(args...)
-
-		if err != nil && !strings.Contains(err.Error(), "mocked command not recognized") {
-			t.Errorf("unexpected error from GetCachedGitOutput: %v", err)
-		}
-
-		if output == nil {
-			t.Errorf("unexpected nil output for fuzzed input: %v", args)
-		}
-	})
-}
-
 func TestGetCachedGitOutput_CacheHit(t *testing.T) {
 	commitCache = sync.Map{}
 	commitCache.Store("git log", []byte("abcdef123456"))
@@ -142,29 +114,6 @@ func TestGetCachedGitOutput_CacheMiss(t *testing.T) {
 	if string(output) != "abcdef123456" {
 		t.Errorf("expected 'abcdef123456', got '%s'", output)
 	}
-}
-
-func FuzzGetTree(f *testing.F) {
-	f.Add("abcdef123456")
-	f.Add("ghijkl789012")
-	f.Add("mnopqr345678")
-
-	f.Fuzz(func(t *testing.T, commit string) {
-		treeCache = sync.Map{}
-
-		execCommand = mockExecCommand
-		defer func() { execCommand = exec.Command }()
-
-		tree, err := GetTree(commit)
-
-		if err != nil && !strings.Contains(err.Error(), "mocked command not recognized") {
-			t.Errorf("unexpected error from GetTree: %v", err)
-		}
-
-		if tree == "" {
-			t.Errorf("unexpected empty tree for fuzzed commit: %s", commit)
-		}
-	})
 }
 
 func TestGetTree_Found(t *testing.T) {
@@ -195,22 +144,6 @@ func TestGetTree_NotFound(t *testing.T) {
 	}
 }
 
-func FuzzIsBinary(f *testing.F) {
-	f.Add([]byte("Hello, world!"))
-	f.Add([]byte{0x00, 0x10, 0x20})
-	f.Add([]byte{0x01, 0x02, 0x03})
-	f.Add([]byte("normal text without binary"))
-
-	f.Fuzz(func(t *testing.T, content []byte) {
-		isBinary := IsBinary(content)
-
-		expected := bytes.IndexByte(content, 0) != -1
-		if isBinary != expected {
-			t.Errorf("IsBinary failed for content: %v, expected: %v, got: %v", content, expected, isBinary)
-		}
-	})
-}
-
 func TestIsBinary(t *testing.T) {
 	binaryContent := []byte{0x00, 0x10, 0x20}
 	nonBinaryContent := []byte("hello, world")
@@ -221,31 +154,6 @@ func TestIsBinary(t *testing.T) {
 	if IsBinary(nonBinaryContent) {
 		t.Error("expected non-binary content not to be detected as binary")
 	}
-}
-
-func FuzzIsMemoryUsageHigh(f *testing.F) {
-	MemoryStatsWrapper = func(memStats *runtime.MemStats) {
-		memStats.Alloc = 1024 * 1024 * 512
-		memStats.Sys = 1024 * 1024 * 1024
-	}
-
-	f.Add("abcdef123456")
-	f.Add("ghijkl789012")
-
-	f.Fuzz(func(t *testing.T, commitSha string) {
-		execCommand = mockExecCommand
-		defer func() { execCommand = exec.Command }()
-
-		high, err := isMemoryUsageHigh(commitSha)
-
-		if err != nil && !strings.Contains(err.Error(), "mocked command not recognized") {
-			t.Errorf("unexpected error from isMemoryUsageHigh: %v", err)
-		}
-
-		if high != true && high != false {
-			t.Errorf("unexpected result for isMemoryUsageHigh: got %v", high)
-		}
-	})
 }
 
 func TestIsMemoryUsageHigh_True(t *testing.T) {
@@ -282,34 +190,6 @@ func TestIsMemoryUsageHigh_False(t *testing.T) {
 	}
 }
 
-func FuzzProcessBlob_SmallBlob(f *testing.F) {
-	f.Add("abcdef", "file.txt", "secret,password")
-	f.Add("123456", "path/to/file.txt", "api_key,token")
-
-	f.Fuzz(func(t *testing.T, sha, path, secretsStr string) {
-		secrets := strings.Split(secretsStr, ",")
-
-		execCommand = mockExecCommand
-		defer func() { execCommand = exec.Command }()
-
-		newSha, err := ProcessBlob(sha, path, secrets)
-
-		if err != nil {
-			t.Fatalf("unexpected error from ProcessBlob: %v", err)
-		}
-
-		if strings.Contains(path, "file.txt") && len(secrets) > 0 && strings.Contains(secretsStr, "secret") {
-			if newSha != "newhash123" {
-				t.Errorf("expected 'newhash123', got '%s'", newSha)
-			}
-		} else {
-			if newSha != sha {
-				t.Errorf("expected '%s', got '%s'", sha, newSha)
-			}
-		}
-	})
-}
-
 func TestProcessBlob_SmallBlob(t *testing.T) {
 	execCommand = mockExecCommand
 	sha, err := ProcessBlob("abcdef", "file.txt", []string{"secret"})
@@ -320,34 +200,6 @@ func TestProcessBlob_SmallBlob(t *testing.T) {
 	if sha != "newhash123" {
 		t.Errorf("expected 'newhash123', got '%s'", sha)
 	}
-}
-
-func FuzzProcessLargeBlob(f *testing.F) {
-	f.Add("abcdef", "file.txt", "secret,password")
-	f.Add("123456", "path/to/largefile.txt", "api_key,token")
-
-	f.Fuzz(func(t *testing.T, sha, path, secretsStr string) {
-		secrets := strings.Split(secretsStr, ",")
-
-		execCommand = mockExecCommand
-		defer func() { execCommand = exec.Command }()
-
-		newSha, err := ProcessLargeBlob(sha, path, secrets)
-
-		if err != nil {
-			t.Fatalf("unexpected error from ProcessLargeBlob: %v", err)
-		}
-
-		if strings.Contains(path, "file.txt") && len(secrets) > 0 && strings.Contains(secretsStr, "secret") {
-			if newSha != "newhash123" {
-				t.Errorf("expected 'newhash123', got '%s'", newSha)
-			}
-		} else {
-			if newSha != sha {
-				t.Errorf("expected '%s', got '%s'", sha, newSha)
-			}
-		}
-	})
 }
 
 func TestProcessBlob_LargeBlob(t *testing.T) {

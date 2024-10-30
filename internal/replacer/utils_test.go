@@ -12,12 +12,13 @@ func FuzzReadSecrets(f *testing.F) {
 	f.Add("\n\n\temptyline\n\t\n")
 
 	f.Fuzz(func(t *testing.T, input string) {
-		filePath := "temp_fuzz_secrets.txt"
+		tempDir := t.TempDir()
+		filePath := tempDir + "/temp_fuzz_secrets.txt"
+
 		err := os.WriteFile(filePath, []byte(input), 0644)
 		if err != nil {
 			t.Fatalf("failed to create temp file: %v", err)
 		}
-		defer os.Remove(filePath)
 
 		secrets, err := ReadSecrets(filePath)
 		if err != nil && !strings.Contains(err.Error(), "unexpected EOF") {
