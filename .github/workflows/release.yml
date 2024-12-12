@@ -11,8 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
     strategy:
       matrix:
         goos: [linux, windows]
@@ -65,7 +63,7 @@ jobs:
     needs: [build]
     permissions:
       id-token: write
-      packages: write
+      contents: write
 
     steps:
       - name: Get version tag
